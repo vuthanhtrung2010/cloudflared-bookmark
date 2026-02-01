@@ -2,7 +2,8 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import { store } from '$lib/stores/mainStore.svelte.js';
-	import { getColorClass } from '$lib/utils/colors.js';
+	import { getColorClass, getColorValue } from '$lib/utils/colors.js';
+	import { cn } from '$lib/utils.js';
 	import { goto } from '$app/navigation';
 
 	interface Props {
@@ -35,7 +36,10 @@
 					class="cursor-pointer gap-1.5"
 					onclick={handleClick}
 				>
-					<span class={`size-2.5 flex-none rounded-full ${getColorClass(tag.color)}`}></span>
+					<span 
+						class={cn("size-2 flex-none rounded-full", getColorClass(tag.color))}
+						style={getColorClass(tag.color) ? '' : `background-color: ${getColorValue(tag.color)}`}
+					></span>
 					<span>{tag.title}</span>
 				</Badge>
 			{/snippet}

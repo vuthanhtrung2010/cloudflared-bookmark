@@ -148,11 +148,11 @@
 
 	.item-list--cards {
 		.item__image-container {
-			@apply -mt-6 -mr-6 -ml-6;
+			@apply w-full bg-muted/30;
 		}
 
 		.item__image {
-			@apply aspect-[1.91/1] w-full rounded-tl-[13px] rounded-tr-[13px] object-cover;
+			@apply aspect-[1.91/1] w-full object-cover;
 		}
 
 		.actions-container {
@@ -166,11 +166,11 @@
 
 	.item-list--list {
 		.item__image-container {
-			@apply relative h-fit w-fit;
+			@apply relative flex h-fit w-[240px] shrink-0 items-center justify-center overflow-hidden rounded-sm bg-muted/20;
 		}
 
 		.item__image {
-			@apply h-auto max-h-[250px] w-auto min-w-[50px] rounded-sm;
+			@apply h-auto w-full object-contain;
 		}
 
 		.actions-container {

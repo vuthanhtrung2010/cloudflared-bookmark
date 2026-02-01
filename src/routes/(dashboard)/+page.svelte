@@ -171,8 +171,11 @@
 					{#each filteredItems as item (item.id)}
 						<Card.Root
 							data-state={store.selectedItemIds.includes(item.id) ? 'selected' : undefined}
-							class="onhover-container data-[state=selected]:bg-muted/50 relative shadow-xs transition-colors"
+							class="onhover-container data-[state=selected]:bg-muted/50 relative overflow-hidden p-0! gap-0! shadow-xs transition-colors"
 						>
+							{#if item.image && isFieldVisible('image')}
+								<PreviewImage imageUrl={item.image} />
+							{/if}
 							<Card.Content class="flex h-full flex-col gap-3 p-4 text-left">
 								<!-- Selection checkbox -->
 								<div class="select-container absolute top-2 left-2 z-40">
@@ -189,17 +192,11 @@
 									<ItemCard {item} />
 								</div>
 
-								<!-- Image -->
-								{#if item.image && isFieldVisible('image')}
-									<div class="image-container">
-										<PreviewImage imageUrl={item.image} class="max-h-[150px] w-auto rounded-sm object-contain shadow-sm" />
-									</div>
-								{/if}
 
 								<!-- Title -->
 								{#if item.title && isFieldVisible('title')}
 									<h4 class="title-container line-clamp-3 scroll-m-20 font-semibold tracking-tight lg:text-lg xl:text-xl">
-										{item.title}
+										{decodeHtmlEntities(item.title)}
 									</h4>
 								{/if}
 
@@ -225,7 +222,7 @@
 								{#if item.description && isFieldVisible('description')}
 									<div class="description-container">
 										<div class="text-muted-foreground line-clamp-3 whitespace-pre-line text-sm leading-6 xl:line-clamp-none">
-											{item.description}
+											{decodeHtmlEntities(item.description)}
 										</div>
 									</div>
 								{/if}
@@ -263,7 +260,9 @@
 						<Card.Root class="onhover-container bg-card hover:bg-muted/50 relative transition-colors">
 							<Card.Content class="flex items-start gap-4 p-4">
 								{#if item.image && isFieldVisible('image')}
-									<PreviewImage imageUrl={item.image} class="size-16 shrink-0 rounded object-cover" />
+									<div class="item__image-container">
+										<PreviewImage imageUrl={item.image} />
+									</div>
 								{/if}
 								<div class="min-w-0 flex-1">
 									<a
@@ -272,10 +271,10 @@
 										rel="noopener noreferrer"
 										class="block truncate font-semibold hover:underline"
 									>
-										{item.title || item.url}
+										{decodeHtmlEntities(item.title) || item.url}
 									</a>
 									{#if item.description && isFieldVisible('description')}
-										<p class="text-muted-foreground mt-1 line-clamp-2 text-sm">{item.description}</p>
+										<p class="text-muted-foreground mt-1 line-clamp-2 text-sm">{decodeHtmlEntities(item.description)}</p>
 									{/if}
 									{#if item.tags && item.tags.length > 0 && isFieldVisible('tags')}
 										<div class="mt-2 flex flex-wrap gap-1">

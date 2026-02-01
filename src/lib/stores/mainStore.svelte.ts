@@ -26,7 +26,23 @@ let isAuthRequired = $state(false);
 let isShowEditModal = $state(false);
 let editingItem = $state<ItemType | null>(null);
 let isOpenSettingsModal = $state(false);
-let layout = $state<LayoutType>('table');
+
+// Initialize layout from localStorage if available
+let initialLayout: LayoutType = 'table';
+if (typeof window !== 'undefined') {
+	const savedLayout = localStorage.getItem('preferred_layout') as LayoutType;
+	if (savedLayout && ['cards', 'list', 'table'].includes(savedLayout)) {
+		initialLayout = savedLayout;
+	}
+}
+let layout = $state<LayoutType>(initialLayout);
+
+function setLayout(newLayout: LayoutType) {
+	layout = newLayout;
+	if (typeof window !== 'undefined') {
+		localStorage.setItem('preferred_layout', newLayout);
+	}
+}
 
 // Bulk selection
 let selectedItemIds = $state<number[]>([]);
@@ -406,10 +422,6 @@ function openSettingsModal() {
 
 function closeSettingsModal() {
 	isOpenSettingsModal = false;
-}
-
-function setLayout(newLayout: LayoutType) {
-	layout = newLayout;
 }
 
 function toggleItemSelection(itemId: number) {

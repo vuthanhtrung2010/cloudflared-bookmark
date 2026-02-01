@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
-	"name": "test",
+	"name": "cloudflared-bookmark",
 	"compatibility_date": "2026-02-01",
 	"compatibility_flags": ["nodejs_als", "nodejs_compat"],
 	"main": ".svelte-kit/cloudflare/_worker.js",
@@ -13,8 +13,8 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "test",
-			"database_id": "e11ee9d5-cb3f-46b1-b8e1-f431465bdf2a",
+			"database_name": "cloudflared-bookmark",
+			"database_id": "14712071-bedb-456b-b893-79afc64c8944",
 			"migrations_dir": "drizzle"
 		}
 	]

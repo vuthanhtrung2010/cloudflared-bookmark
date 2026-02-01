@@ -1,43 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types.js';
-
-// Fetch metadata for a single URL
-async function fetchUrlMetadata(url: string) {
-	try {
-		const response = await fetch(url, {
-			headers: {
-				'User-Agent': 'Mozilla/5.0 (compatible; Faved/1.0; +https://faved.dev)'
-			}
-		});
-
-		if (!response.ok) {
-			return null;
-		}
-
-		const html = await response.text();
-
-		// Parse title
-		const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-		const title = titleMatch ? titleMatch[1].trim() : '';
-
-		// Parse description from meta tags
-		const descMatch =
-			html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i) ||
-			html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i);
-		const description = descMatch ? descMatch[1].trim() : '';
-
-		// Parse og:image
-		const imageMatch =
-			html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) ||
-			html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
-		const image = imageMatch ? imageMatch[1].trim() : '';
-
-		return { title, description, image };
-	} catch (error) {
-		console.error('Error fetching URL metadata:', error);
-		return null;
-	}
-}
+import { fetchUrlMetadata } from '$lib/server/metadata.js';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	if (!locals.user) {

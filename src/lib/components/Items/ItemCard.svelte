@@ -45,7 +45,7 @@
 <DropdownMenu.Root>
 	<DropdownMenu.Trigger>
 		{#snippet child({ props })}
-			<Button {...props} variant="outline" class="onhover-visible px-1.5!">
+			<Button {...props} variant="ghost" class="onhover-visible size-8 rounded-full p-0 shadow-md bg-black/70 hover:bg-black text-white backdrop-blur-sm transition-all duration-200">
 				<MoreVertical class="size-4" />
 				<span class="sr-only">Open menu</span>
 			</Button>

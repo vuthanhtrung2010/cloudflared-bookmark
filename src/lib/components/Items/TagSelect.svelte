@@ -5,7 +5,7 @@
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { store } from '$lib/stores/mainStore.svelte.js';
-	import { getColorClass } from '$lib/utils/colors.js';
+	import { getColorClass, getColorValue } from '$lib/utils/colors.js';
 	import type { TagType } from '$lib/types.js';
 	import { cn } from '$lib/utils.js';
 
@@ -94,7 +94,10 @@
 							{@const tag = store.tags[tagId]}
 							{#if tag}
 								<Badge variant="secondary" class="gap-1.5">
-									<span class={cn('size-2.5 flex-none rounded-full', getColorClass(tag.color))}></span>
+									<span 
+										class={cn('size-2.5 flex-none rounded-full', getColorClass(tag.color))}
+										style={getColorClass(tag.color) ? '' : `background-color: ${getColorValue(tag.color)}`}
+									></span>
 									<span>{tag.title}</span>
 								</Badge>
 							{/if}
@@ -125,7 +128,10 @@
 							onSelect={() => toggleTag(tag.id)}
 							class="flex items-center gap-3"
 						>
-							<span class={cn('size-3 flex-none rounded-full', getColorClass(tag.color))}></span>
+							<span 
+								class={cn('size-3 flex-none rounded-full', getColorClass(tag.color))}
+								style={getColorClass(tag.color) ? '' : `background-color: ${getColorValue(tag.color)}`}
+							></span>
 							<span class="flex-1">{tag.title}</span>
 							<Check class={cn('size-4', selected.includes(tag.id) ? 'opacity-100' : 'opacity-0')} />
 						</Command.Item>

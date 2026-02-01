@@ -3,10 +3,16 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { store } from '$lib/stores/mainStore.svelte.js';
 	import { goto } from '$app/navigation';
 	import type { TagType } from '$lib/types.js';
-	import { getColorClass, colorOptions } from '$lib/utils/colors.js';
+	import { getColorValue, colorPresets, getColorClass } from '$lib/utils/colors.js';
+
+	// Delete dialog state
+	let showDeleteDialog = $state(false);
+	let tagToDelete = $state<TagType | null>(null);
+	let isDeleting = $state(false);
 
 	// Get all tags as object
 	let allTags = $derived(store.tags as Record<number, TagType>);
@@ -53,9 +59,19 @@
 		await store.updateTagColor(tag.id, color);
 	}
 
-	async function handleDelete(tag: TagType) {
-		if (confirm(`Delete tag "${tag.title}"?`)) {
-			await store.deleteTag(tag.id);
+	function openDeleteDialog(tag: TagType) {
+		tagToDelete = tag;
+		showDeleteDialog = true;
+	}
+
+	async function handleDelete() {
+		if (!tagToDelete) return;
+		isDeleting = true;
+		try {
+			await store.deleteTag(tagToDelete.id);
+			showDeleteDialog = false;
+		} finally {
+			isDeleting = false;
 		}
 	}
 
@@ -75,6 +91,8 @@
 				{@const children = getChildTags(tag.id)}
 				{@const isSelected = store.selectedTagId === tag.id}
 				{@const hasChildSelected = isChildSelected(tag)}
+				{@const tagColor = getColorValue(tag.color)}
+				{@const tagColorClass = getColorClass(tag.color)}
 
 				{#if children.length > 0}
 					<!-- Tag with children - collapsible -->
@@ -89,7 +107,10 @@
 									</Collapsible.Trigger>
 								</div>
 								<button onclick={() => handleTagClick(tag.id)} class="flex w-full items-center justify-start gap-2 py-2 pe-0 text-left">
-									<span class={`size-2.5 flex-none rounded-full ${getColorClass(tag.color)}`}></span>
+									<span 
+										class="size-2.5 flex-none rounded-full {tagColorClass}"
+										style={tagColorClass ? '' : `background-color: ${tagColor}`}
+									></span>
 									<span title={tag.title} class="line-clamp-1 break-all">{tag.title}</span>
 									{#if tag.pinned}
 										<Pin class="ms-auto size-4" />
@@ -101,13 +122,18 @@
 								<Sidebar.MenuSub class="mr-px pr-0">
 									{#each children as childTag (childTag.id)}
 										{@const isChildSel = store.selectedTagId === childTag.id}
+										{@const childColor = getColorValue(childTag.color)}
+										{@const childColorClass = getColorClass(childTag.color)}
 										<Sidebar.MenuSubItem>
 											<Sidebar.MenuSubButton
 												class={isChildSel ? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground' : ''}
 											>
 												{#snippet child({ props })}
 													<button {...props} onclick={() => handleTagClick(childTag.id)} class="flex w-full items-center gap-2 pl-8">
-														<span class={`size-2.5 flex-none rounded-full ${getColorClass(childTag.color)}`}></span>
+														<span 
+															class="size-2.5 flex-none rounded-full {childColorClass}"
+															style={childColorClass ? '' : `background-color: ${childColor}`}
+														></span>
 														<span title={childTag.title} class="line-clamp-1 break-all">{childTag.title}</span>
 													</button>
 												{/snippet}
@@ -137,10 +163,12 @@
 									<DropdownMenu.Sub>
 										<DropdownMenu.SubTrigger>Color</DropdownMenu.SubTrigger>
 										<DropdownMenu.SubContent>
-											{#each colorOptions as color (color)}
+											{#each colorPresets as color (color)}
 												<DropdownMenu.Item onclick={() => handleColorChange(tag, color)}>
-													<span class={`mr-2 inline-block size-3 rounded-full ${getColorClass(color)}`}></span>
-													{color.charAt(0).toUpperCase() + color.slice(1)}
+													<span 
+														class="mr-2 inline-block size-3 rounded-full"
+														style="background-color: {color}"
+													></span>
 													{#if tag.color === color}
 														<span class="ml-auto">✓</span>
 													{/if}
@@ -149,7 +177,7 @@
 										</DropdownMenu.SubContent>
 									</DropdownMenu.Sub>
 									<DropdownMenu.Separator />
-									<DropdownMenu.Item onclick={() => handleDelete(tag)} class="text-destructive">
+									<DropdownMenu.Item onclick={() => openDeleteDialog(tag)} class="text-destructive">
 										Delete
 									</DropdownMenu.Item>
 								</DropdownMenu.Content>
@@ -163,7 +191,10 @@
 							class="p-0 {isSelected ? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground' : ''}"
 						>
 							<button onclick={() => handleTagClick(tag.id)} class="flex w-full items-center justify-start gap-2 py-2 pl-8 text-left">
-								<span class={`size-2.5 flex-none rounded-full ${getColorClass(tag.color)}`}></span>
+								<span 
+									class="size-2.5 flex-none rounded-full {tagColorClass}"
+									style={tagColorClass ? '' : `background-color: ${tagColor}`}
+								></span>
 								<span title={tag.title} class="line-clamp-1 break-all">{tag.title}</span>
 								{#if tag.pinned}
 									<Pin class="ms-auto size-4" />
@@ -191,10 +222,12 @@
 								<DropdownMenu.Sub>
 									<DropdownMenu.SubTrigger>Color</DropdownMenu.SubTrigger>
 									<DropdownMenu.SubContent>
-										{#each colorOptions as color (color)}
+										{#each colorPresets as color (color)}
 											<DropdownMenu.Item onclick={() => handleColorChange(tag, color)}>
-												<span class={`mr-2 inline-block size-3 rounded-full ${getColorClass(color)}`}></span>
-												{color.charAt(0).toUpperCase() + color.slice(1)}
+												<span 
+													class="mr-2 inline-block size-3 rounded-full"
+													style="background-color: {color}"
+												></span>
 												{#if tag.color === color}
 													<span class="ml-auto">✓</span>
 												{/if}
@@ -203,7 +236,7 @@
 									</DropdownMenu.SubContent>
 								</DropdownMenu.Sub>
 								<DropdownMenu.Separator />
-								<DropdownMenu.Item onclick={() => handleDelete(tag)} class="text-destructive">
+								<DropdownMenu.Item onclick={() => openDeleteDialog(tag)} class="text-destructive">
 									Delete
 								</DropdownMenu.Item>
 							</DropdownMenu.Content>
@@ -214,3 +247,25 @@
 		</Sidebar.Menu>
 	</Sidebar.GroupContent>
 </Sidebar.Group>
+
+<!-- Delete Confirmation Dialog -->
+<AlertDialog.Root bind:open={showDeleteDialog}>
+	<AlertDialog.Content>
+		<AlertDialog.Header>
+			<AlertDialog.Title>Delete tag?</AlertDialog.Title>
+			<AlertDialog.Description>
+				This will delete the tag "{tagToDelete?.title}". Your bookmarks won't be deleted, only the tag association will be removed.
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action
+				onclick={handleDelete}
+				disabled={isDeleting}
+				class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+			>
+				{isDeleting ? 'Deleting...' : 'Delete'}
+			</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>

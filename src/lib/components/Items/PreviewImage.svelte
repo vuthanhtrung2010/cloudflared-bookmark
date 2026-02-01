@@ -6,9 +6,8 @@
 
 	let { imageUrl, class: className = '' }: Props = $props();
 
-	import { store } from '$lib/stores/mainStore.svelte.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Search } from '@lucide/svelte';
+	import { Search, X } from '@lucide/svelte';
 
 	let hasError = $state(false);
 
@@ -28,18 +27,33 @@
 					loading="lazy"
 					onerror={handleError}
 				/>
-				<div class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-opacity group-hover:bg-black/10 group-hover:opacity-100">
+				<div
+					class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-opacity group-hover:bg-black/10 group-hover:opacity-100"
+				>
 					<Search class="text-white drop-shadow-md" />
 				</div>
 			</div>
 		</Dialog.Trigger>
-		<Dialog.Content class="max-w-[95vw] border-none bg-transparent p-0 shadow-none sm:max-w-[90vw] lg:max-w-[80vw]">
-			<div class="relative flex h-full w-full items-center justify-center overflow-auto p-4 lg:p-10">
-				<img
-					src={imageUrl}
-					alt=""
-					class="max-h-[85vh] w-auto rounded-lg object-contain shadow-2xl"
-				/>
+		<Dialog.Content
+			showCloseButton={false}
+			class="max-w-[95vw] border-none bg-transparent p-0 shadow-none focus:outline-hidden sm:max-w-[90vw] lg:max-w-[80vw]"
+		>
+			<div
+				class="relative flex h-full w-full items-center justify-center overflow-auto p-6 lg:p-10"
+			>
+				<div class="relative">
+					<img
+						src={imageUrl}
+						alt=""
+						class="max-h-[85vh] w-auto rounded-lg object-contain shadow-2xl"
+					/>
+					<Dialog.Close
+						class="absolute -top-3 -right-3 flex size-8 items-center justify-center rounded-full bg-black text-white shadow-lg transition-transform hover:scale-110 active:scale-95"
+					>
+						<X class="size-5" />
+						<span class="sr-only">Close</span>
+					</Dialog.Close>
+				</div>
 			</div>
 		</Dialog.Content>
 	</Dialog.Root>

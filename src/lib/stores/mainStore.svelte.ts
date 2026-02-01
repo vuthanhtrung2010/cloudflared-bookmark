@@ -27,15 +27,7 @@ let isShowEditModal = $state(false);
 let editingItem = $state<ItemType | null>(null);
 let isOpenSettingsModal = $state(false);
 
-// Initialize layout from localStorage if available
-let initialLayout: LayoutType = 'table';
-if (typeof window !== 'undefined') {
-	const savedLayout = localStorage.getItem('preferred_layout') as LayoutType;
-	if (savedLayout && ['cards', 'list', 'table'].includes(savedLayout)) {
-		initialLayout = savedLayout;
-	}
-}
-let layout = $state<LayoutType>(initialLayout);
+let layout = $state<LayoutType>('table');
 
 function setLayout(newLayout: LayoutType) {
 	layout = newLayout;
@@ -450,6 +442,14 @@ function clearSelectedTag() {
 
 // Init
 async function init() {
+	// Initialize layout from localStorage if available
+	if (typeof window !== 'undefined') {
+		const savedLayout = localStorage.getItem('preferred_layout') as LayoutType;
+		if (savedLayout && ['cards', 'list', 'table'].includes(savedLayout)) {
+			layout = savedLayout;
+		}
+	}
+
 	await getUser(true);
 	if (!isAuthRequired) {
 		await Promise.all([fetchItems(), fetchTags()]);

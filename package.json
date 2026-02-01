@@ -14,7 +14,8 @@
 		"db:generate": "dotenv -c -- drizzle-kit generate",
 		"db:migrate": "wrangler d1 migrations apply --local DB",
 		"postinstall": "wrangler types && mv worker-configuration.d.ts src/",
-		"db:migrate-production": "dotenv -c -- drizzle-kit migrate"
+		"db:migrate-production": "dotenv -c -- drizzle-kit migrate",
+		"deploy": "bun run build && wrangler deploy"
 	},
 	"files": [
 		"dist",

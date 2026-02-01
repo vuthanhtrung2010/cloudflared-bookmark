@@ -1,6 +1,7 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import { D1Database } from './types.ts';
+import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import type * as schema from '$lib/server/db/schema.js';
 
 declare global {
 	namespace App {
@@ -13,7 +14,9 @@ declare global {
 
 		// interface Error {}
 		interface Locals {
-			db: D1Database;
+			db: DrizzleD1Database<typeof schema>;
+			user: schema.User | null;
+			sessionId: string | null;
 		}
 		// interface PageData {}
 		// interface PageState {}

@@ -15,6 +15,8 @@
 	import { page } from '$app/state';
 	import { getContext } from 'svelte';
 	import { decodeHtmlEntities } from '$lib/utils/html.js';
+	import type { TagType } from '$lib/types.js';
+	import { getDescendantIds } from '$lib/utils/tags.js';
 
 	// Local state
 	let searchQuery = $state('');
@@ -57,7 +59,9 @@
 		if (filterTagId === 'none') {
 			result = result.filter((item) => item.tags.length === 0);
 		} else if (typeof filterTagId === 'number') {
-			result = result.filter((item) => item.tags.includes(filterTagId));
+			const subtagIds = getDescendantIds(filterTagId, store.tags as Record<number, TagType>);
+			const allTargetTagIds = [filterTagId, ...subtagIds];
+			result = result.filter((item) => item.tags.some((tId) => allTargetTagIds.includes(tId)));
 		}
 
 		// Sort
@@ -136,7 +140,9 @@
 </svelte:head>
 
 <!-- Header toolbar matching Faved -->
-<header class="bg-background sticky top-0 z-50 flex h-(--header-height) w-full items-center gap-1.5 border-b px-4 backdrop-blur-sm">
+<header
+	class="sticky top-0 z-50 flex h-(--header-height) w-full items-center gap-1.5 border-b bg-background px-4 backdrop-blur-sm"
+>
 	<div class="flex h-14 items-center space-x-1">
 		<Sidebar.Trigger />
 		<Separator orientation="vertical" class="h-8 min-h-0!" />
@@ -155,23 +161,33 @@
 <div class="flex-1 overflow-auto">
 	<!-- Bulk Actions -->
 	{#if selectedCount > 0}
-		<BulkActions {selectedCount} onClear={handleClearSelection} selectedItemIds={store.selectedItemIds} />
+		<BulkActions
+			{selectedCount}
+			onClear={handleClearSelection}
+			selectedItemIds={store.selectedItemIds}
+		/>
 	{/if}
 
 	<!-- Content -->
 	{#if store.isLoading}
-		<div class="text-muted-foreground flex h-full items-center justify-center text-lg">Loading...</div>
+		<div class="flex h-full items-center justify-center text-lg text-muted-foreground">
+			Loading...
+		</div>
 	{:else if filteredItems.length === 0}
-		<div class="text-muted-foreground flex h-full items-center justify-center text-lg">No items.</div>
+		<div class="flex h-full items-center justify-center text-lg text-muted-foreground">
+			No items.
+		</div>
 	{:else}
 		<div class="flex h-full flex-col justify-between gap-5 item-list--{store.layout}">
 			{#if store.layout === 'cards'}
 				<!-- Cards Layout matching Faved -->
-				<div class="m-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5">
+				<div
+					class="3xl:grid-cols-5 m-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+				>
 					{#each filteredItems as item (item.id)}
 						<Card.Root
 							data-state={store.selectedItemIds.includes(item.id) ? 'selected' : undefined}
-							class="onhover-container data-[state=selected]:bg-muted/50 relative overflow-hidden p-0! gap-0! shadow-xs transition-colors"
+							class="onhover-container relative gap-0! overflow-hidden p-0! shadow-xs transition-colors data-[state=selected]:bg-muted/50"
 						>
 							{#if item.image && isFieldVisible('image')}
 								<PreviewImage imageUrl={item.image} />
@@ -183,7 +199,11 @@
 										type="checkbox"
 										checked={store.selectedItemIds.includes(item.id)}
 										onchange={() => handleToggleSelect(item.id)}
-										class="onhover-visible bg-background size-4 rounded border {store.selectedItemIds.includes(item.id) ? 'opacity-100!' : ''}"
+										class="onhover-visible size-4 rounded border bg-background {store.selectedItemIds.includes(
+											item.id
+										)
+											? 'opacity-100!'
+											: ''}"
 									/>
 								</div>
 
@@ -192,17 +212,18 @@
 									<ItemCard {item} />
 								</div>
 
-
 								<!-- Title -->
 								{#if item.title && isFieldVisible('title')}
-									<h4 class="title-container line-clamp-3 scroll-m-20 font-semibold tracking-tight lg:text-lg xl:text-xl">
+									<h4
+										class="title-container line-clamp-3 scroll-m-20 font-semibold tracking-tight lg:text-lg xl:text-xl"
+									>
 										{decodeHtmlEntities(item.title)}
 									</h4>
 								{/if}
 
 								<!-- URL -->
 								{#if item.url && isFieldVisible('url')}
-									<div class="url-container line-clamp-3 break-all text-sm lg:text-base">
+									<div class="url-container line-clamp-3 text-sm break-all lg:text-base">
 										<a href={item.url} target="_blank" rel="noopener noreferrer" class="underline">
 											{item.url}
 										</a>
@@ -221,7 +242,9 @@
 								<!-- Description -->
 								{#if item.description && isFieldVisible('description')}
 									<div class="description-container">
-										<div class="text-muted-foreground line-clamp-3 whitespace-pre-line text-sm leading-6 xl:line-clamp-none">
+										<div
+											class="line-clamp-3 text-sm leading-6 whitespace-pre-line text-muted-foreground xl:line-clamp-none"
+										>
 											{decodeHtmlEntities(item.description)}
 										</div>
 									</div>
@@ -230,7 +253,9 @@
 								<!-- Notes -->
 								{#if item.comments && isFieldVisible('comments')}
 									<div class="comments-container">
-										<blockquote class="text-muted-foreground line-clamp-3 whitespace-pre-line border-l-2 pl-6 text-sm italic xl:line-clamp-none">
+										<blockquote
+											class="line-clamp-3 border-l-2 pl-6 text-sm whitespace-pre-line text-muted-foreground italic xl:line-clamp-none"
+										>
 											{item.comments}
 										</blockquote>
 									</div>
@@ -238,15 +263,17 @@
 
 								<!-- Created date -->
 								{#if item.createdAt && isFieldVisible('createdAt')}
-									<div class="created_at-container text-muted-foreground text-xs lg:text-sm">
-										<span class="font-medium leading-none">Created date:</span> {item.createdAt}
+									<div class="created_at-container text-xs text-muted-foreground lg:text-sm">
+										<span class="leading-none font-medium">Created date:</span>
+										{item.createdAt}
 									</div>
 								{/if}
 
 								<!-- Updated date -->
 								{#if item.updatedAt && isFieldVisible('updatedAt')}
-									<div class="updated_at-container text-muted-foreground text-xs lg:text-sm">
-										<span class="font-medium leading-none">Updated date:</span> {item.updatedAt}
+									<div class="updated_at-container text-xs text-muted-foreground lg:text-sm">
+										<span class="leading-none font-medium">Updated date:</span>
+										{item.updatedAt}
 									</div>
 								{/if}
 							</Card.Content>
@@ -257,7 +284,9 @@
 				<!-- List Layout -->
 				<div class="m-4 space-y-2">
 					{#each filteredItems as item (item.id)}
-						<Card.Root class="onhover-container bg-card hover:bg-muted/50 relative transition-colors">
+						<Card.Root
+							class="onhover-container relative bg-card transition-colors hover:bg-muted/50"
+						>
 							<Card.Content class="flex items-start gap-4 p-4">
 								{#if item.image && isFieldVisible('image')}
 									<div class="item__image-container">
@@ -274,7 +303,9 @@
 										{decodeHtmlEntities(item.title) || item.url}
 									</a>
 									{#if item.description && isFieldVisible('description')}
-										<p class="text-muted-foreground mt-1 line-clamp-2 text-sm">{decodeHtmlEntities(item.description)}</p>
+										<p class="mt-1 line-clamp-2 text-sm text-muted-foreground">
+											{decodeHtmlEntities(item.description)}
+										</p>
 									{/if}
 									{#if item.tags && item.tags.length > 0 && isFieldVisible('tags')}
 										<div class="mt-2 flex flex-wrap gap-1">
@@ -305,22 +336,30 @@
 								<th class="h-10 min-w-xs px-2 text-left align-middle text-sm font-medium">Title</th>
 							{/if}
 							{#if isFieldVisible('url')}
-								<th class="h-10 min-w-xs px-2 text-left align-middle text-sm font-medium break-all">URL</th>
+								<th class="h-10 min-w-xs px-2 text-left align-middle text-sm font-medium break-all"
+									>URL</th
+								>
 							{/if}
 							{#if isFieldVisible('tags')}
 								<th class="h-10 min-w-xs px-2 text-left align-middle text-sm font-medium">Tags</th>
 							{/if}
 							{#if isFieldVisible('description')}
-								<th class="h-10 min-w-xs px-2 text-left align-middle text-sm font-medium">Description</th>
+								<th class="h-10 min-w-xs px-2 text-left align-middle text-sm font-medium"
+									>Description</th
+								>
 							{/if}
 							{#if isFieldVisible('comments')}
 								<th class="h-10 min-w-xs px-2 text-left align-middle text-sm font-medium">Notes</th>
 							{/if}
 							{#if isFieldVisible('createdAt')}
-								<th class="h-10 min-w-[170px] px-2 text-left align-middle text-sm font-medium">Created date</th>
+								<th class="h-10 min-w-[170px] px-2 text-left align-middle text-sm font-medium"
+									>Created date</th
+								>
 							{/if}
 							{#if isFieldVisible('updatedAt')}
-								<th class="h-10 min-w-[170px] px-2 text-left align-middle text-sm font-medium">Updated date</th>
+								<th class="h-10 min-w-[170px] px-2 text-left align-middle text-sm font-medium"
+									>Updated date</th
+								>
 							{/if}
 						</tr>
 					</thead>
@@ -328,39 +367,41 @@
 						{#each filteredItems as item (item.id)}
 							{@const isSelected = store.selectedItemIds.includes(item.id)}
 							<tr
-								class="onhover-container hover:bg-muted/50 border-b transition-colors data-[state=selected]:bg-muted"
+								class="onhover-container border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
 								data-state={isSelected ? 'selected' : undefined}
 							>
 								<!-- Select cell -->
-								<td class="text-left align-middle whitespace-normal break-normal px-2">
+								<td class="px-2 text-left align-middle break-normal whitespace-normal">
 									<input
 										type="checkbox"
 										checked={isSelected}
 										onchange={() => handleToggleSelect(item.id)}
-										class="bg-primary-foreground onhover-visible size-4 rounded border {isSelected ? 'opacity-100!' : ''}"
+										class="onhover-visible size-4 rounded border bg-primary-foreground {isSelected
+											? 'opacity-100!'
+											: ''}"
 									/>
 								</td>
 								{#if isFieldVisible('image')}
-									<td class="text-left align-middle whitespace-normal break-normal px-2 py-2">
+									<td class="px-2 py-2 text-left align-middle break-normal whitespace-normal">
 										{#if item.image}
 											<PreviewImage imageUrl={item.image} class="" />
 										{/if}
 									</td>
 								{/if}
 								{#if isFieldVisible('title')}
-									<td class="min-w-xs text-left align-middle whitespace-normal break-normal px-2">
+									<td class="min-w-xs px-2 text-left align-middle break-normal whitespace-normal">
 										<span title={item.title}>{item.title || 'Untitled'}</span>
 									</td>
 								{/if}
 								{#if isFieldVisible('url')}
-									<td class="min-w-xs text-left align-middle whitespace-normal break-all px-2">
+									<td class="min-w-xs px-2 text-left align-middle break-all whitespace-normal">
 										<a href={item.url} target="_blank" rel="noopener noreferrer" class="underline">
 											{item.url}
 										</a>
 									</td>
 								{/if}
 								{#if isFieldVisible('tags')}
-									<td class="min-w-xs text-left align-middle whitespace-normal break-normal px-2">
+									<td class="min-w-xs px-2 text-left align-middle break-normal whitespace-normal">
 										<div class="flex w-full flex-wrap gap-1 py-2 leading-relaxed">
 											{#each item.tags as tagId (tagId)}
 												<TagBadge {tagId} />
@@ -369,23 +410,29 @@
 									</td>
 								{/if}
 								{#if isFieldVisible('description')}
-									<td class="min-w-xs text-left align-middle whitespace-normal break-normal px-2">
+									<td class="min-w-xs px-2 text-left align-middle break-normal whitespace-normal">
 										{decodeHtmlEntities(item.description)}
 									</td>
 								{/if}
 								{#if isFieldVisible('comments')}
-									<td class="min-w-xs text-left align-middle whitespace-normal break-normal px-2">
+									<td class="min-w-xs px-2 text-left align-middle break-normal whitespace-normal">
 										{decodeHtmlEntities(item.comments)}
 									</td>
 								{/if}
 								{#if isFieldVisible('createdAt')}
-									<td class="text-muted-foreground min-w-[170px] text-left align-middle whitespace-normal break-normal px-2 text-sm">{item.createdAt || '-'}</td>
+									<td
+										class="min-w-[170px] px-2 text-left align-middle text-sm break-normal whitespace-normal text-muted-foreground"
+										>{item.createdAt || '-'}</td
+									>
 								{/if}
 								{#if isFieldVisible('updatedAt')}
-									<td class="text-muted-foreground min-w-[170px] text-left align-middle whitespace-normal break-normal px-2 text-sm">{item.updatedAt || '-'}</td>
+									<td
+										class="min-w-[170px] px-2 text-left align-middle text-sm break-normal whitespace-normal text-muted-foreground"
+										>{item.updatedAt || '-'}</td
+									>
 								{/if}
 								<!-- Actions pinned to right -->
-								<td class="sticky right-0 z-10 bg-transparent text-left align-middle px-2">
+								<td class="sticky right-0 z-10 bg-transparent px-2 text-left align-middle">
 									<div class="onhover-visible">
 										<ItemCard {item} />
 									</div>

@@ -8,6 +8,7 @@
 	import { getColorClass, getColorValue } from '$lib/utils/colors.js';
 	import type { TagType } from '$lib/types.js';
 	import { cn } from '$lib/utils.js';
+	import { getTagPath } from '$lib/utils/tags.js';
 
 	interface Props {
 		values?: number[];
@@ -86,7 +87,10 @@
 				variant="outline"
 				role="combobox"
 				aria-expanded={open}
-				class={cn('flex h-auto min-h-10 w-full justify-start text-left whitespace-normal', className)}
+				class={cn(
+					'flex h-auto min-h-10 w-full justify-start text-left whitespace-normal',
+					className
+				)}
 			>
 				<div class="flex flex-1 flex-wrap gap-1">
 					{#if selected.length > 0}
@@ -94,9 +98,11 @@
 							{@const tag = store.tags[tagId]}
 							{#if tag}
 								<Badge variant="secondary" class="gap-1.5">
-									<span 
+									<span
 										class={cn('size-2.5 flex-none rounded-full', getColorClass(tag.color))}
-										style={getColorClass(tag.color) ? '' : `background-color: ${getColorValue(tag.color)}`}
+										style={getColorClass(tag.color)
+											? ''
+											: `background-color: ${getColorValue(tag.color)}`}
 									></span>
 									<span>{tag.title}</span>
 								</Badge>
@@ -110,7 +116,10 @@
 			</Button>
 		{/snippet}
 	</Popover.Trigger>
-	<Popover.Content class={cn('w-full min-w-[300px] overflow-y-hidden p-0', className)} align="start">
+	<Popover.Content
+		class={cn('w-full min-w-[300px] overflow-y-hidden p-0', className)}
+		align="start"
+	>
 		<Command.Root shouldFilter={false}>
 			<Command.Input
 				placeholder="Search or create tag..."
@@ -128,12 +137,17 @@
 							onSelect={() => toggleTag(tag.id)}
 							class="flex items-center gap-3"
 						>
-							<span 
+							<span
 								class={cn('size-3 flex-none rounded-full', getColorClass(tag.color))}
-								style={getColorClass(tag.color) ? '' : `background-color: ${getColorValue(tag.color)}`}
+								style={getColorClass(tag.color)
+									? ''
+									: `background-color: ${getColorValue(tag.color)}`}
 							></span>
-							<span class="flex-1">{tag.title}</span>
-							<Check class={cn('size-4', selected.includes(tag.id) ? 'opacity-100' : 'opacity-0')} />
+							<span class="flex-1">{getTagPath(tag.id, store.tags as Record<number, TagType>)}</span
+							>
+							<Check
+								class={cn('size-4', selected.includes(tag.id) ? 'opacity-100' : 'opacity-0')}
+							/>
 						</Command.Item>
 					{/each}
 

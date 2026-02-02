@@ -7,7 +7,8 @@ import type {
 	UpdateItemType,
 	CreateUserType,
 	LoginType,
-	LayoutType
+	LayoutType,
+	TagType
 } from '$lib/types.js';
 
 interface ApiResponse {
@@ -265,6 +266,47 @@ async function updateItemsTags(itemIds: number[], tagIdsAll: number[], tagIdsSom
 
 // Tag CRUD
 async function createTag(title: string, parent: number = 0) {
+	// Support "A/B/C" syntax for hierarchical creation
+	const parts = title
+		.split('/')
+		.map((s) => s.trim())
+		.filter(Boolean);
+
+	if (parts.length > 1) {
+		let currentParentId = parent;
+		let lastCreatedId: number | null = null;
+
+		for (const part of parts) {
+			// Check if this tag already exists under the current parent
+			const existing = Object.values(tags as Record<number, TagType>).find(
+				(t) => t.title === part && t.parent === currentParentId
+			);
+
+			if (existing) {
+				currentParentId = existing.id;
+				lastCreatedId = existing.id;
+			} else {
+				const result = await runRequest<{ tag_id: number }>(
+					'/api/tags',
+					'POST',
+					{ title: part, parent: currentParentId },
+					'Failed to create hierarchical tag'
+				);
+
+				if (result.success && result.data) {
+					currentParentId = result.data.tag_id;
+					lastCreatedId = result.data.tag_id;
+					// Fetch tags after each creation to keep the local state updated for the next part
+					await fetchTags();
+				} else {
+					return null;
+				}
+			}
+		}
+		return lastCreatedId;
+	}
+
+	// Normal creation
 	const result = await runRequest<{ tag_id: number }>(
 		'/api/tags',
 		'POST',
@@ -330,6 +372,21 @@ async function updateTagPinned(tagId: number, pinned: boolean) {
 		'PATCH',
 		{ tag_id: tagId, pinned },
 		'Failed to update tag pinned status'
+	);
+
+	if (result.success) {
+		await fetchTags();
+		return true;
+	}
+	return false;
+}
+
+async function updateTagParent(tagId: number, parent: number) {
+	const result = await runRequest(
+		'/api/tags/update-parent',
+		'PATCH',
+		{ tag_id: tagId, parent },
+		'Failed to update tag parent'
 	);
 
 	if (result.success) {
@@ -511,6 +568,7 @@ export const store = {
 	updateTagTitle,
 	updateTagColor,
 	updateTagPinned,
+	updateTagParent,
 	updateUsername,
 	updatePassword,
 	deleteUser,

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Tag, Pencil, Trash, Pin, PinOff, Palette, MoreVertical } from '@lucide/svelte';
+	import { Tag, Pencil, Trash, Pin, PinOff, MoreVertical } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
@@ -15,12 +15,8 @@
 	let newTagTitle = $state('');
 	let newTagParent = $state<number>(0);
 	let isCreating = $state(false);
-
-	// Dialog states
-	let showRenameDialog = $state(false);
-	let showColorDialog = $state(false);
 	let showDeleteDialog = $state(false);
-	let showEditDialog = $state(false); // New unified edit dialog
+	let showEditDialog = $state(false);
 
 	let selectedTag = $state<TagType | null>(null);
 	let editTitle = $state('');

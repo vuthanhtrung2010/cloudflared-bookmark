@@ -1,14 +1,8 @@
 <script lang="ts">
-	import { ChevronRight, MoreVertical, Pin } from '@lucide/svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { store } from '$lib/stores/mainStore.svelte.js';
-	import { goto } from '$app/navigation';
 	import type { TagType } from '$lib/types.js';
-	import { getColorValue, colorPresets, getColorClass } from '$lib/utils/colors.js';
-
 	import NavTagItem from './NavTagItem.svelte';
 
 	// Delete dialog state
